@@ -105,7 +105,7 @@ Templates for required seed files are located in the [seed_templates](seed_templ
 1. Academic Sessions Types Mapping
 - File name: `xwalk_oneroster_academic_sessions_types.csv`
 - Columns:
-  - `session_name`: Comes from the Ed-Fi Sessions resource, Session Name field.
+  - `academic_term`: Comes from the Ed-Fi Sessions resource, Academic Term field.
   - `type`: Must be one of the [OneRoster sessionType](http://www.imsglobal.org/oneroster-v11-final-specification#_Toc480452027) list of values (gradingPeriod, semester, schoolYear, term).
  
 2. Classroom Positions Primary Teacher Mapping

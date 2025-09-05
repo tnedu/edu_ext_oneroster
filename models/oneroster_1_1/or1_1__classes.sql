@@ -22,7 +22,7 @@ stg_course_offering as (
 periods as (
     select 
         k_course_section,
-        listagg(distinct class_period_name, ',') as periods
+        ARRAY_JOIN(COLLECT_SET(class_period_name), ',') AS periods
     from {{ ref('stg_ef3__sections__class_periods') }} sec
     join {{ ref('stg_ef3__class_periods')}} per
         on sec.k_class_period = per.k_class_period
@@ -30,21 +30,21 @@ periods as (
     group by 1
 )
 select 
-    {{ gen_sourced_id('class') }} as "sourcedId", 
-    null::varchar as "status",
-    null::date as "dateLastModified", 
-    crs_offering.local_course_title as "title", -- consider adding section_id here?
-    null::varchar as "grades",
-    {{ gen_sourced_id('course') }} as "courseSourcedId",
-    sections.local_course_code as "classCode", 
-    'scheduled' as "classType", -- do we need a homeroom indicator
-    sections.classroom_identification_code as "location",
-    {{ gen_sourced_id('school') }} as "schoolSourcedId", 
-    {{ gen_sourced_id('session') }} as "termSourcedIds",
-    null::varchar as "subject",
-    null::varchar as "subjectCodes",
-    periods.periods as "periods",
-    {{ gen_natural_key('class') }} as "metadata.edu.natural_key",
+    {{ gen_sourced_id('class') }} as `sourcedId`, 
+    null::string as `status`,
+    null::date as `dateLastModified`, 
+    crs_offering.local_course_title as `title`, -- consider adding section_id here?
+    null::string as `grades`,
+    {{ gen_sourced_id('course') }} as `courseSourcedId`,
+    sections.local_course_code as `classCode`, 
+    'scheduled' as `classType`, -- do we need a homeroom indicator
+    sections.classroom_identification_code as `location`,
+    {{ gen_sourced_id('school') }} as `schoolSourcedId`, 
+    {{ gen_sourced_id('session') }} as `termSourcedIds`,
+    null::string as `subject`,
+    null::string as `subjectCodes`,
+    periods.periods as `periods`,
+    {{ gen_natural_key('class') }} as `metadata.edu.natural_key`,
     sections.tenant_code
     -- periods
 from stg_sections sections

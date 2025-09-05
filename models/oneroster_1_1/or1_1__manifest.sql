@@ -4,8 +4,8 @@
     alias = 'manifest'
     )
 }}
-select $1 as "propertyName", $2 as "value"
-from (values 
+select propertyName, value
+from values 
     ('manifest.version', '1.0'),
     ('oneroster.version', '1.1'),
     ('file.academicSessions', 'bulk'),
@@ -23,4 +23,4 @@ from (values
     ('file.users', 'bulk'),
     ('file.systemName', 'enabledataunion'),
     ('file.systemCode', 'edu')
-  )
+AS manifest(propertyName, value)

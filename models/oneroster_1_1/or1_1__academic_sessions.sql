@@ -37,33 +37,32 @@ summarize_school_year as (
     group by all
 ),
 create_school_year as (
-
     select 
-        {{ gen_sourced_id('school_year') }} as "sourcedId",
-        null::varchar as "status",
-        null::date as "dateLastModified",
-        concat(school_year - 1, '-', school_year) as "title",
-        'schoolYear' as "type",
-        first_school_day as "startDate",
-        last_school_day as "endDate",
-        null::varchar as "parentSourcedId",
-        school_year as "schoolYear",
-        {{ gen_natural_key('school_year') }} as "metadata.edu.natural_key",
+        {{ gen_sourced_id('school_year') }} as `sourcedId`,
+        null::string as `status`,
+        null::date as `dateLastModified`,
+        concat(school_year - 1, '-', school_year) as `title`,
+        'schoolYear' as `type`,
+        first_school_day as `startDate`,
+        last_school_day as `endDate`,
+        null::string as `parentSourcedId`,
+        school_year as `schoolYear`,
+        {{ gen_natural_key('school_year') }} as `metadata.edu.natural_key`,
         tenant_code
     from summarize_school_year
 ),
 sessions_formatted as (
     select  
-        {{ gen_sourced_id('session') }} as "sourcedId",
-        null::varchar as "status",
-        null::date as "dateLastModified",
-        stg_sessions.academic_term as "title",
-        xtype.type as "type", 
-        stg_sessions.session_begin_date as "startDate",
-        stg_sessions.session_end_date as "endDate",
-        {{ gen_sourced_id('school_year') }} as "parentSourcedId",
-        stg_sessions.api_year as "schoolYear",
-        {{ gen_natural_key('session') }} as "metadata.edu.natural_key",
+        {{ gen_sourced_id('session') }} as `sourcedId`,
+        null::string as `status`,
+        null::date as `dateLastModified`,
+        stg_sessions.academic_term as `title`,
+        xtype.type as `type`, 
+        stg_sessions.session_begin_date as `startDate`,
+        stg_sessions.session_end_date as `endDate`,
+        {{ gen_sourced_id('school_year') }} as `parentSourcedId`,
+        stg_sessions.api_year as `schoolYear`,
+        {{ gen_natural_key('session') }} as `metadata.edu.natural_key`,
         stg_sessions.tenant_code
     from stg_sessions
     left join xwalk_session_types xtype

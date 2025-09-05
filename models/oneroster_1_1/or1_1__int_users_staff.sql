@@ -43,7 +43,7 @@ staff_role as (
 user_ids as (
     select 
         k_staff,
-        listagg(concat('{', id_system, ':', id_code, '}'), ',') as ids
+        ARRAY_JOIN(COLLECT_SET(concat('{', id_system, ':', id_code, '}')), ',') as ids
     from {{ ref('stg_ef3__staffs__identification_codes') }}
     where api_year = {{ var('oneroster:active_school_year')}}
     group by all
@@ -63,34 +63,34 @@ staff_orgs as (
 staff_orgs_agg as (
     select 
         k_staff,
-        listagg(distinct {{ gen_sourced_id('school') }}, ',') as orgs
+        ARRAY_JOIN(COLLECT_SET( {{ gen_sourced_id('school') }}), ',') as orgs
     from staff_orgs
     group by all
 ),
 
 formatted as (
     select 
-        {{ gen_sourced_id('staff') }} as "sourcedId", 
-        null::string as "status",
-        null::date as "dateLastModified",
-        true as "enabledUser",
-        staff_orgs_agg.orgs as "orgSourceIds",
-        staff_role.oneroster_role as "role",
-        dim_staff.email_address as "username",
-        user_ids.ids as "userIds",
-        dim_staff.first_name as "givenName",
-        dim_staff.last_name as "familyName",
-        dim_staff.middle_name as "middleName",
-        dim_staff.staff_unique_id as "identifier",
-        dim_staff.email_address as "email",
-        null::string as "sms",
-        null::string as "phone",
-        null::string as "agentSourceIds",
-        null:string as "grades",
-        null::string as "password",
-        {{ gen_natural_key('staff') }} as "metadata.edu.natural_key",
-        staff_role.staff_classification as "metadata.edu.staff_classification",
-        null::string as "metadata.edu.primary_school",
+        {{ gen_sourced_id('staff') }} as `sourcedId`, 
+        null::string as `status`,
+        null::date as `dateLastModified`,
+        true as `enabledUser`,
+        staff_orgs_agg.orgs as `orgSourceIds`,
+        staff_role.oneroster_role as `role`,
+        dim_staff.email_address as `username`,
+        user_ids.ids as `userIds`,
+        dim_staff.first_name as `givenName`,
+        dim_staff.last_name as `familyName`,
+        dim_staff.middle_name as `middleName`,
+        dim_staff.staff_unique_id as `identifier`,
+        dim_staff.email_address as `email`,
+        null::string as `sms`,
+        null::string as `phone`,
+        null::string as `agentSourceIds`,
+        null::string as `grades`,
+        null::string as `password`,
+        {{ gen_natural_key('staff') }} as `metadata.edu.natural_key`,
+        staff_role.staff_classification as `metadata.edu.staff_classification`,
+        null::string as `metadata.edu.primary_school`,
         dim_staff.tenant_code
     from dim_staff
     join user_ids 

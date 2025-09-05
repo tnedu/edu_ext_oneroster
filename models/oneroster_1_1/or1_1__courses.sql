@@ -31,18 +31,18 @@ clean_up_depts as (
 {%- endif -%}
 )
 select 
-    {{ gen_sourced_id('course') }} as "sourcedId",
-    null::string as "status",
-    null::date as "dateLastModified", 
-    {{ gen_sourced_id('school_year') }} as "schoolYearSourcedId", 
-    course_title as "title", 
-    course_code  as "courseCode", 
-    null::string as "grades",
-    {{ gen_sourced_id(orgtype) }} as "orgSourcedId",
+    {{ gen_sourced_id('course') }} as `sourcedId`,
+    null::string as `status`,
+    null::date as `dateLastModified`, 
+    {{ gen_sourced_id('school_year') }} as `schoolYearSourcedId`, 
+    course_title as `title`, 
+    course_code  as `courseCode`, 
+    null::string as `grades`,
+    {{ gen_sourced_id(orgtype) }} as `orgSourcedId`,
     -- required to be SCED codes, not generally available
-    null::string as "subjects",
-    null::string as "subjectCodes",
-    {{ gen_natural_key('course') }} as "metadata.edu.natural_key",
+    null::string as `subjects`,
+    null::string as `subjectCodes`,
+    {{ gen_natural_key('course') }} as `metadata.edu.natural_key`,
     crs.tenant_code
 from stg_courses crs
 join course_leas 

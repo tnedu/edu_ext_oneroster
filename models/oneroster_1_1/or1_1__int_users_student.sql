@@ -13,7 +13,8 @@ student_school as (
     where school_year = {{ var('oneroster:active_school_year')}}
 ),
 dim_school as (
-    select * exclude tenant_code from {{ ref('dim_school') }}
+    {{ select_excluding('dim_school', 'tenant_code') }}
+    --select * exclude tenant_code from {{ ref('dim_school') }}
 ),
 grade_level_xwalk as (
     select * from {{ ref('xwalk_oneroster_grade_levels') }}
@@ -22,9 +23,27 @@ user_ids as (
     select 
         k_student,
         k_lea,
-        listagg(concat('{', id_system, ':', id_code, '}'), ',') as ids
-    from {{ ref('stg_ef3__stu_ed_org__identification_codes') }}
-    where api_year = {{ var('oneroster:active_school_year')}}
+        ARRAY_JOIN(COLLECT_SET(concat('{', id_system, ':', id_code, '}')), ',') as ids
+    from (
+        select 
+            k_student,
+            k_lea,
+            id_system,
+            id_code
+        from {{ ref('stg_ef3__stu_ed_org__identification_codes') }}
+        where api_year = {{ var('oneroster:active_school_year') }}
+            and id_system not in ('SSN')
+        union all
+        select seoa.k_student,
+            seoa.k_lea,
+            'Legacy State Student Id' as id_system,
+            s.state_student_id as id_code
+        from {{ ref('stg_ef3__student_education_organization_associations') }} seoa
+        join {{ ref('stg_ef3__students') }} s
+            on s.k_student = seoa.k_student
+        where seoa.api_year = {{ var('oneroster:active_school_year') }}
+            and s.state_student_id is not null
+    )
     group by all
 ),
 student_email as (
@@ -54,10 +73,10 @@ student_orgs as (
 student_orgs_agg as (
     select 
         k_student,
-        listagg(distinct sourced_id, ',') as orgs,
+        ARRAY_JOIN(COLLECT_SET(sourced_id), ',') as orgs,
         -- create columns for primary school extension
-        max_by(sourced_id, is_primary_school, 1)[0]::string as primary_school_sourced_id,
-        max_by(sourced_id, entry_date, 1)[0]::string as latest_school_sourced_id
+        max_by(sourced_id, is_primary_school)::string as primary_school_sourced_id,
+        max_by(sourced_id, entry_date)::string as latest_school_sourced_id
     from student_orgs
     group by all
 ),
@@ -70,27 +89,27 @@ student_keys as (
 ),
 formatted as (
     select 
-        student_keys.sourced_id as "sourcedId",
-        null::string as "status",
-        null::date as "dateLastModified",
-        true as "enabledUser", 
-        student_orgs_agg.orgs as "orgSourcedIds",
-        'student' as "role",
-        student_email.email_address as "username",
-        user_ids.ids as "userIds",
-        dim_student.first_name as "givenName",
-        dim_student.last_name as "familyName",
-        dim_student.middle_name as "middleName",
-        dim_student.student_unique_id as "identifier",
-        student_email.email_address as "email",
-        null::string as "sms",
-        null::string as "phone",
-        null::string as "agentSourceIds",
-        grade_level_xwalk.oneroster_grade_level as "grades",
-        null::string as "password",
-        student_keys.natural_key as "metadata.edu.natural_key",
-        null::string as "metadata.edu.staff_classfication",
-        coalesce(student_orgs_agg.primary_school_sourced_id, student_orgs_agg.latest_school_sourced_id) as "metadata.edu.primary_school",
+        student_keys.sourced_id as `sourcedId`,
+        null::string as `status`,
+        null::date as `dateLastModified`,
+        true as `enabledUser`, 
+        student_orgs_agg.orgs as `orgSourcedIds`,
+        'student' as `role`,
+        student_email.email_address as `username`,
+        user_ids.ids as `userIds`,
+        dim_student.first_name as `givenName`,
+        dim_student.last_name as `familyName`,
+        dim_student.middle_name as `middleName`,
+        dim_student.student_unique_id as `identifier`,
+        student_email.email_address as `email`,
+        null::string as `sms`,
+        null::string as `phone`,
+        null::string as `agentSourceIds`,
+        grade_level_xwalk.oneroster_grade_level as `grades`,
+        null::string as `password`,
+        student_keys.natural_key as `metadata.edu.natural_key`,
+        null::string as `metadata.edu.staff_classfication`,
+        coalesce(student_orgs_agg.primary_school_sourced_id, student_orgs_agg.latest_school_sourced_id) as `metadata.edu.primary_school`,
         dim_student.tenant_code
     from dim_student
     join student_keys 
