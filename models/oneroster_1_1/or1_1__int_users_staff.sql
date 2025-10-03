@@ -46,7 +46,7 @@ user_ids as (
     from (
         select 
             k_staff,
-            id.system, id.code
+            id_system, id_code
         from {{ ref('stg_ef3__staffs__identification_codes') }}
         where api_year = {{ var('oneroster:active_school_year')}}
             and id_system not in ('SSN')
