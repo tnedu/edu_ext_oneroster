@@ -51,11 +51,14 @@ user_ids as (
         where api_year = {{ var('oneroster:active_school_year')}}
             and id_system not in ('SSN')
         union
-        select csac.k_staff,
+        select s.k_staff,
             'TLN' as id_system,
             csac.TeacherLicenseNumber as id_code
         from {{ ref('cds_staff_additional_columns') }} csac
-        where seoa.api_year = {{ var('oneroster:active_school_year') }}
+        join {{ ref('stg_ef3__staffs') }} s
+            on s.record_guid = csac.oid
+        where csac.TeacherLicenseNumber is not null
+            and s.api_year = {{ var('oneroster:active_school_year') }}
     )
     group by all
 ),
