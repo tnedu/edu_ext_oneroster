@@ -41,11 +41,22 @@ staff_role as (
 ),
 
 user_ids as (
-    select 
-        k_staff,
+    select k_staff,
         ARRAY_JOIN(COLLECT_SET(concat('{', id_system, ':', id_code, '}')), ',') as ids
-    from {{ ref('stg_ef3__staffs__identification_codes') }}
-    where api_year = {{ var('oneroster:active_school_year')}}
+    from (
+        select 
+            k_staff,
+            id.system, id.code
+        from {{ ref('stg_ef3__staffs__identification_codes') }}
+        where api_year = {{ var('oneroster:active_school_year')}}
+            and id_system not in ('SSN')
+        union
+        select csac.k_staff,
+            'TLN' as id_system,
+            csac.TeacherLicenseNumber as id_code
+        from {{ ref('cds_staff_additional_columns') }} csac
+        where seoa.api_year = {{ var('oneroster:active_school_year') }}
+    )
     group by all
 ),
 
