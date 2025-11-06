@@ -14,7 +14,8 @@ with stg_courses as (
 ),
 -- want courses defined by district, so grab this from offerings and reduce down
 course_leas as (
-    select distinct k_course, lea_id 
+    select distinct k_course, 
+        cast(lea_id as int) as lea_id
     from {{ ref('stg_ef3__course_offerings') }} as co 
     join {{ ref('stg_ef3__schools') }} as s 
         on co.k_school = s.k_school
