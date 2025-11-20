@@ -107,7 +107,7 @@ formatted as (
         null::string as `metadata.edu.primary_school`,
         dim_staff.tenant_code
     from dim_staff
-    join user_ids 
+    left outer join user_ids 
         on dim_staff.k_staff = user_ids.k_staff
     join staff_role
         on dim_staff.k_staff = staff_role.k_staff
